@@ -1,18 +1,48 @@
-\# Mushroom Yield Predictor
+\## Problem Statement 
 
-Zelbytes Internship - AI Data Analyst
+Predicting daily mushroom yield (kg) in a climate-controlled polyhouse using real-world sensor 
 
+readings for temperature (°C), relative humidity (%), and CO₂ (ppm). This repository serves as a 
 
+version-controlled data pipeline resilient against model breakdown due to sudden hardware or 
 
-\## Environment Setup
+data drift updates. 
 
-1\. Python 3.10+ verified
+\## Project Structure 
 
-2\. Virtual environment: python -m venv venv
+```text 
 
-3\. Activated: venv\\Scripts\\activate
+├── data/ 
 
-4\. Installed: pandas, numpy, matplotlib, scikit-learn, jupyter
+│   ├── processed/        
 
-5\. Smoke test passed successfully
+│   └── raw/              
+
+├── models/               
+
+├── notebooks/            
+
+├── src/ 
+
+\# Standardized datasets ready for modeling 
+
+\# Raw sensor data uploads (Excluded from Git) 
+
+\# Serialized production-ready model files 
+
+\# Jupyter notebooks for exploratory data analysis 
+
+│   └── smoke\_test.py     # Base validation environment script 
+
+├── .gitignore            
+
+\# Explicitly excludes environment and large log assets 
+
+├── README.md             
+
+└── requirements.txt      
+
+\# Project roadmap and run protocols 
+
+\# Pinned infrastructure dependencies
 
