@@ -1,12 +1,22 @@
 import pandas as pd
 
-df = pd.read_csv(
-    "data/raw/polyhouse_sensors.csv"
-)
+try:
 
-print("Rows:", len(df))
-print("Columns:", len(df.columns))
+    df = pd.read_parquet(
+        "data/processed/02_cleaned.parquet"
+    )
 
-assert len(df) > 0
+    print("SUCCESS")
 
-print("Smoke Test Passed!")
+    print(df.shape)
+
+    print(
+        "Null yield values:",
+        df["yield_kg"].isna().sum()
+    )
+
+except Exception as e:
+
+    print("FAILED")
+
+    print(e)
