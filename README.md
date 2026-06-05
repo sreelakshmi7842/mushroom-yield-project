@@ -31,75 +31,32 @@ This project is structured to support data ingestion, validation, preprocessing,
 
 ---
 
-## Data Cleaning Strategy (Phase 1, Task 2)
+## cleaning log ## -day4
 
-**1. Outliers & Anomalies (Threshold Rules)**
-Filtered humidity (50-100%), temperature (10-35°C), and CO2 (400-2000 ppm) to remove hard sensor failures (e.g., a dead humidity probe reading 0% or environmental spikes outside biological survival ranges). 
+loaded clean.py file into src
 
-**2. Missing Values (Imputation vs. Row Removal)**
-Handled short sensor dropouts (power blips, calibration gaps) using forward-fill (`ffill`) with a strict limit of 2 periods, assuming short-term microclimate stability. Rows completely missing the `yield_kg` target variable were dropped entirely, as we cannot train or evaluate models on missing ground-truth labels.
+This script performs data cleaning and preprocessing using several common techniques:
+1 Missing value analysis
+2 Range-based filtering (data validation)
+3 Null target removal
+4 Forward-fill imputation
+5 Deletion of missing targets
+6 Deduplication
 
-**3. Duplicates**
-Removed exact timestamp duplicates, keeping the `last` entry under the assumption it represents the most recent or corrected system export.
+Overall Cleaning Strategy
 
-### Initial Missing Value Report (Pre-Cleaning)
-Before applying the imputation and filtering rules, the dataset exhibited the following missing values:
+This is a combination of:
 
-```text
-timestamp         0
-temperature_c    14
-humidity_pct     14
-co2_ppm          14
-yield_kg         42
-dtype: int64
-(Note: Be sure to update these placeholder numbers with the actual output from your terminal).
+1 Data Validation Cleaning
+  Filters out out-of-range sensor readings.
+2 Missing Value Treatment
+  Forward-fill imputation for sensor data.
+  Row deletion for missing target values.
+3 Data Deduplication
+  Removes duplicate timestamps.
+4 Quality-Based Filtering
+  Retains only records that satisfy predefined oyster polyhouse environmental conditions.
 
-Project Structure
-Plaintext
-mushroom-yield-project/
-│
-├── data/
-│   ├── raw/              # Raw sensor data uploads (excluded from Git)
-│   ├── interim/          # Intermediate data that has been cleaned
-│   └── processed/        # Standardized datasets ready for modeling
-│
-├── models/               # Serialized production-ready model files
-│
-├── notebooks/            # Jupyter notebooks for exploratory analysis
-│
-├── src/
-│   ├── clean.py          # Data cleaning and imputation script
-│   └── smoke_test.py     # Base validation environment script
-│
-├── docs/
-│   └── cleaning_log.md   # Documentation for data processing decisions
-│
-├── .gitignore            # Excludes virtual environments and large data files
-├── README.md             # Project documentation and workflow guide
-└── requirements.txt      # Project dependencies
-Installation
-Clone the repository:
+Duplicate records were identified using the timestamp column and removed while retaining the latest occurrence. A total of 0 duplicate records were removed, resulting in a final cleaned dataset containing 365 rows.
 
-Bash
-git clone https://github.com/sreelakshmi7842/mushroom-yield-project
-cd mushroom-yield-project
-Create and activate a virtual environment:
-
-Windows
-Bash
-python -m venv venv
-venv\Scripts\activate
-Install dependencies:
-
-Bash
-pip install -r requirements.txt
-Running the Project
-Run Environment Validation
-Bash
-python src/smoke_test.py
-Run Data Cleaning Pipeline
-Bash
-python src/clean.py
-Future Enhancements
-Automated data ingestion
-
+02_cleaned.parquet was successfully loaded and validated. The target column (yield_kg) contains 0 missing values, confirming that all records are suitable for downstream analysis and model training.
