@@ -132,3 +132,151 @@ We successfully completed Task 3 by writing `src/eda.py` to generate publication
 [x] Figures folder tracked in Git (PNG size reasonable at 150 DPI).
 
 [x] Identified strongest positive/negative correlations with caveats.
+
+# # Feature Engineering & Scaling## -day7
+
+## Objective
+
+Prepare machine learning features from the cleaned polyhouse dataset and scale them to a common range using Min-Max Scaling. The resulting feature set will be used for model training in later tasks.
+
+## Input Dataset
+
+Source:
+
+data/interim/02_cleaned.parquet
+
+
+Target Variable:
+
+yield_kg
+
+## Feature Definitions
+
+### 1. Temperature
+
+Column:
+
+temperature_c
+
+Description:
+
+Average temperature inside the polyhouse in degrees Celsius.
+
+Biological Importance:
+
+Temperature directly affects mushroom growth rate, metabolism, and fruiting body development.
+
+### 2. Humidity
+
+Column:
+
+humidity_pct
+
+Description:
+
+Relative humidity percentage inside the polyhouse.
+
+Biological Importance:
+
+Oyster mushrooms require high humidity for healthy growth and yield production. Low humidity can reduce productivity and affect mushroom quality.
+
+### 3. Carbon Dioxide
+
+Column:
+
+co2_ppm
+
+Description:
+
+Carbon dioxide concentration measured in parts per million (ppm).
+
+Biological Importance:
+
+CO₂ levels influence mushroom respiration and growth conditions. Extremely high or low concentrations may affect yield.
+
+### 4. Temperature–Humidity Interaction Feature
+
+Column:
+
+temp_humid_interaction
+
+Formula:
+
+temp_humid_interaction =
+(temperature_c × humidity_pct) / 100
+
+Example:
+
+temperature_c = 25
+humidity_pct = 80
+
+temp_humid_interaction =
+(25 × 80) / 100
+= 20
+
+Biological Importance:
+
+Mushroom growth depends on the combined effect of temperature and humidity rather than either variable independently. This engineered feature helps the model capture interactions between these environmental factors.
+
+
+## Feature Matrix and Target
+
+Feature Matrix (X):
+
+[
+    "temperature_c",
+    "humidity_pct",
+    "co2_ppm",
+    "temp_humid_interaction"
+]
+
+
+Target Variable (y):
+
+yield_kg
+
+## Scaling Method
+
+Scaler Used:
+
+MinMaxScaler()
+
+Scaling Formula:
+
+x_scaled =
+(x - x_min) / (x_max - x_min)
+
+Output Range:
+
+[0, 1]
+
+Purpose:
+
+* Prevents large-scale variables from dominating smaller-scale variables.
+* Improves compatibility with many machine learning algorithms.
+* Produces comparable feature ranges.
+
+## Saved Outputs
+
+Processed Features:
+
+data/processed/features.parquet
+
+
+Saved Scaler:
+
+models/minmax_scaler.joblib
+
+## Validation Checks
+
+The following checks are performed after feature engineering:
+
+* Feature and target row counts match.
+* No missing values remain after processing.
+* All scaled features lie within the range [0, 1].
+* Scaler object is successfully saved for future inference.
+
+## Future Improvement
+
+For learning purposes, the scaler is currently fitted on the full cleaned dataset.
+
