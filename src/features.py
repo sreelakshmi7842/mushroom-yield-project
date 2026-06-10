@@ -47,7 +47,7 @@ print(X_scaled.max())
 # Save scaler
 joblib.dump(
     scaler,
-    "models/minmax_scaler.pkl"
+    "models/minmax_scaler.joblib"
 )
 
 # Save processed data
@@ -60,5 +60,5 @@ processed_df.to_parquet(
 )
 
 print("\nFiles Saved Successfully")
-print("Scaler: models/minmax_scaler.pkl")
+print("Scaler: models/minmax_scaler.joblib")
 print("Dataset: data/processed/features.parquet")
