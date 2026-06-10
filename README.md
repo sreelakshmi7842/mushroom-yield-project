@@ -280,3 +280,99 @@ The following checks are performed after feature engineering:
 
 For learning purposes, the scaler is currently fitted on the full cleaned dataset.
 
+##### DAY 8
+## Chronological Train/Test Split
+
+### Objective
+
+To prepare the mushroom yield dataset for machine learning by creating a chronological train/test split while preventing data leakage.
+
+### Methodology
+
+1. Loaded the cleaned dataset from:
+
+   `data/interim/02_cleaned.parquet`
+
+2. Sorted records by timestamp.
+
+3. Applied an 80/20 chronological split:
+
+   * First 80% of records → Training set
+   * Last 20% of records → Test set
+
+4. Verified that no test record occurred before the training cutoff date.
+
+5. Applied MinMaxScaler:
+
+   * Fitted only on training data
+   * Applied to both training and test data
+
+### Features Used
+
+* temperature_c
+* humidity_pct
+* co2_ppm
+
+### Target Variable
+
+* yield_kg
+
+### Leakage Prevention
+
+The following assertion verifies that all test observations occur after the training period:
+
+`assert test_start_date > train_end_date`
+
+### Saved Artifacts
+
+#### Model Assets
+
+* models/minmax_scaler_train.joblib
+
+#### Processed Data
+
+* data/processed/train.csv
+* data/processed/test.csv
+
+#### NumPy Arrays
+
+* data/processed/X_train.npy
+* data/processed/X_test.npy
+* data/processed/y_train.npy
+* data/processed/y_test.npy
+
+### Output Information Logged
+
+The script logs:
+
+* Train and test row counts
+* Train period dates
+* Test period dates
+* Split cutoff date
+* Leakage validation status
+* X and y array shapes
+
+### Execution
+
+Run the script using:
+
+`python src/split_scale.py`
+
+### Timeline Diagram
+
+The chronological split can be visualized as:
+
+|------------------- Training Set (80%) -------------------|------ Test Set (20%) ------|
+
+2024-01-01                                            2024-10-18              2024-10-19                    2024-12-30
+                                                        ↑
+                                                   Split Cutoff
+
+This timeline illustrates the separation between training and test windows and confirms that future observations are not used during model training.
+
+### Seasonality Consideration
+
+Because the dataset is split chronologically, the test period represents future observations that the model has not seen during training. If the average value of `yield_kg` in the test period differs significantly from the training period, evaluation metrics may decrease. Such differences can occur due to seasonality, environmental changes, or shifts in growing conditions over time.
+
+This behavior is expected in real-world forecasting scenarios and does not indicate data leakage. Instead, it reflects the model's ability to generalize to future data under changing conditions.
+
