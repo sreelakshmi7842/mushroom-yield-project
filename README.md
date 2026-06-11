@@ -461,3 +461,201 @@ The script prints:
 
 The resulting model serves as a baseline benchmark for future machine learning experiments on mushroom yield prediction.
 
+# Day 10 – Linear Regression Diagnostics
+
+## Objective
+
+The objective of Day 10 was to evaluate the quality of the Linear Regression baseline model beyond standard metrics.
+
+While MAE, RMSE, and R² provide overall performance information, residual diagnostics help determine whether the model errors behave randomly or exhibit patterns that indicate missing relationships, feature engineering opportunities, or the need for a more complex model.
+
+---
+
+## Tasks Completed
+
+### 1. Loaded Trained Linear Regression Model
+
+Model file:
+
+```text
+models/linear_regression.joblib
+```
+
+The previously trained Linear Regression model was loaded and used to generate predictions on the test dataset.
+
+---
+
+### 2. Generated Predictions
+
+Predictions were produced for:
+
+* Training set
+* Test set
+
+These predictions were used to calculate residuals.
+
+---
+
+### 3. Calculated Residuals
+
+Residuals were computed using:
+
+```text
+Residual = Actual Yield − Predicted Yield
+```
+
+Interpretation:
+
+* Positive residual → model under-predicted yield
+* Negative residual → model over-predicted yield
+* Residual near zero → accurate prediction
+
+---
+
+### 4. Created Diagnostic Plots
+
+#### Residuals vs Predicted Yield
+
+Saved as:
+
+```text
+reports/figures/residuals_linear.png
+```
+
+Purpose:
+
+* Detect heteroscedasticity
+* Detect systematic bias
+* Check whether residuals are centered around zero
+
+---
+
+#### Residuals vs Humidity
+
+Saved as:
+
+```text
+reports/figures/residuals_vs_humidity_linear.png
+```
+
+Purpose:
+
+* Investigate whether humidity has nonlinear effects on yield
+* Detect feature-specific residual patterns
+
+---
+
+## Diagnostic Findings
+
+### Finding 1: Residuals Centered Around Zero
+
+Most residuals were distributed around the zero line.
+
+Interpretation:
+
+The model does not show strong systematic over-prediction or under-prediction.
+
+---
+
+### Finding 2: Variance Changes at Higher Predictions
+
+The spread of residuals increases slightly for some larger predicted yields.
+
+Interpretation:
+
+This may indicate mild heteroscedasticity, meaning prediction uncertainty increases for larger harvests.
+
+---
+
+### Finding 3: Potential Nonlinear Relationship with Humidity
+
+The residual-versus-humidity plot suggests that the effect of humidity may not be perfectly linear.
+
+Interpretation:
+
+A linear model may not fully capture the relationship between humidity and mushroom yield.
+
+---
+
+## Outlier Investigation
+
+Several observations showed larger residual values than the majority of samples.
+
+Possible explanations:
+
+* Environmental anomalies
+* Harvest recording inconsistencies
+* Unusual growing conditions
+* Sensor measurement noise
+
+These observations should be reviewed before considering removal.
+
+---
+
+## Model Assessment
+
+### Strengths
+
+* Easy to interpret
+* Fast training
+* Clear coefficient explanations
+* Useful benchmark model
+
+### Limitations
+
+* Assumes linear relationships
+* Sensitive to nonlinear patterns
+* May not capture interactions among environmental variables
+
+---
+
+## Recommendation
+
+The Linear Regression model should be retained as the baseline model.
+
+However, diagnostic analysis suggests that nonlinear relationships may exist within the dataset.
+
+Recommended next step:
+
+### Train a Random Forest Regressor
+
+Reasons:
+
+* Captures nonlinear relationships
+* Handles feature interactions automatically
+* Often improves predictive accuracy
+* Robust to complex environmental effects
+
+---
+
+## Deliverables
+
+Generated during Day 10:
+
+```text
+reports/
+│
+├── linear_diagnostics.md
+│
+└── figures/
+    ├── residuals_linear.png
+    └── residuals_vs_humidity_linear.png
+```
+
+Model used:
+
+```text
+models/linear_regression.joblib
+```
+
+---
+
+## Conclusion
+
+Day 10 focused on evaluating model behavior rather than model accuracy alone.
+
+Residual diagnostics revealed that the Linear Regression baseline is useful and interpretable, but some evidence of nonlinearity remains.
+
+Based on these findings, moving to a nonlinear model such as Random Forest is justified and will be explored in the next phase of the project.
+
+
