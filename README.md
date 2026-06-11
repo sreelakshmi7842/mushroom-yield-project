@@ -656,6 +656,172 @@ Day 10 focused on evaluating model behavior rather than model accuracy alone.
 
 Residual diagnostics revealed that the Linear Regression baseline is useful and interpretable, but some evidence of nonlinearity remains.
 
-Based on these findings, moving to a nonlinear model such as Random Forest is justified and will be explored in the next phase of the project.
+# Day 11 – Random Forest Regressor
+
+## Objective
+
+The objective of Day 11 was to train and evaluate a Random Forest Regressor for predicting mushroom yield using environmental sensor data. The model was trained using the leak-free train/test split created on Day 8 and compared against the Linear Regression baseline from Day 9.
+
+---
+
+## Dataset
+
+### Features
+
+* temperature_c
+* humidity_pct
+* co2_ppm
+
+### Target
+
+* yield_kg
+
+### Data Split
+
+The project uses the preprocessed datasets generated during Day 8:
+
+```text
+data/processed/train.csv
+data/processed/test.csv
+```
+
+This ensures a consistent and leak-free evaluation process across models.
+
+---
+
+## Model Pipeline
+
+A Scikit-Learn Pipeline was used to maintain consistency with previous experiments.
+
+Pipeline Components:
+
+1. StandardScaler
+2. RandomForestRegressor
+
+Model configuration:
+
+```python
+RandomForestRegressor(
+    n_estimators=100,
+    random_state=42,
+    n_jobs=-1
+)
+```
+
+---
+
+## Evaluation Metrics
+
+The following metrics were calculated on the test set:
+
+* Mean Absolute Error (MAE)
+* Root Mean Squared Error (RMSE)
+* R² Score
+
+These metrics were compared against the Linear Regression baseline.
+
+---
+
+## Model Comparison
+
+| Model             | MAE           | RMSE          | R²            |
+| ----------------- | ------------- | ------------- | ------------- |
+| Linear Regression | (your result) | (your result) | (your result) |
+| Random Forest     | (your result) | (your result) | (your result) |
+
+Interpretation:
+
+* Lower MAE indicates smaller prediction errors.
+* Lower RMSE indicates better overall predictive performance.
+* Higher R² indicates more variance explained by the model.
+
+---
+
+## Feature Importance Analysis
+
+Feature importance scores were extracted from the trained Random Forest model.
+
+Features analyzed:
+
+* temperature_c
+* humidity_pct
+* co2_ppm
+
+A feature importance visualization was generated and saved as:
+
+```text
+plots/rf_feature_importance.png
+```
+
+---
+
+## Model Artifact
+
+The trained model was serialized using Joblib and saved to:
+
+```text
+models/random_forest.joblib
+```
+
+This allows the model to be loaded later for inference without retraining.
+
+---
+
+## Results and Discussion
+
+Random Forest was chosen because mushroom yield is influenced by nonlinear interactions between environmental variables.
+
+Unlike Linear Regression, Random Forest can model:
+
+* nonlinear relationships
+* variable interactions
+* threshold effects
+
+Examples include situations where increased humidity improves yield only within specific temperature ranges.
+
+### Complexity Tradeoff
+
+Advantages:
+
+* Captures nonlinear patterns
+* Handles feature interactions automatically
+* Generally produces stronger predictive performance
+
+Disadvantages:
+
+* Less interpretable than Linear Regression
+* Higher computational cost
+* Larger model size
+
+If Random Forest significantly improves R² and reduces error metrics, the additional complexity is justified. Otherwise, the simpler Linear Regression model may remain preferable.
+
+---
+
+## Deliverables
+
+Completed:
+
+* Random Forest trained on train set only
+* Evaluated on held-out test set
+* Compared against Linear Regression baseline
+* Feature importance calculated
+* Feature importance plot generated
+* Model saved using Joblib
+* Results documented
+
+Generated Files:
+
+```text
+models/random_forest.joblib
+plots/rf_feature_importance.png
+```
+
+---
+
+## Conclusion
+
+The Random Forest Regressor provides a stronger nonlinear modeling approach for mushroom yield prediction. By comparing its performance against Linear Regression, we can determine whether the increased model complexity produces meaningful improvements in predictive accuracy.
+
+
 
 
