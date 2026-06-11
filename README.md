@@ -817,6 +817,14 @@ plots/rf_feature_importance.png
 ```
 
 ---
+==============================
+INTERPRETATION
+==============================
+Best Model: Linear Regression
+
+Random Forest showed little or no improvement over Linear Regression.
+In this case, Linear Regression may be preferred because it is simpler and more interpretable.
+
 
 ## Conclusion
 
