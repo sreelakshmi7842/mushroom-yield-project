@@ -656,49 +656,50 @@ Day 10 focused on evaluating model behavior rather than model accuracy alone.
 
 Residual diagnostics revealed that the Linear Regression baseline is useful and interpretable, but some evidence of nonlinearity remains.
 
-# Day 11 – Random Forest Regressor
+# Day 11 – Random Forest Regression Model
 
 ## Objective
 
-The objective of Day 11 was to train and evaluate a Random Forest Regressor for predicting mushroom yield using environmental sensor data. The model was trained using the leak-free train/test split created on Day 8 and compared against the Linear Regression baseline from Day 9.
+To train and evaluate a Random Forest Regression model for mushroom yield prediction and compare its performance against the Linear Regression baseline.
 
 ---
 
 ## Dataset
 
-### Features
+### Training Data
 
-* temperature_c
-* humidity_pct
-* co2_ppm
+* Samples: **292**
 
-### Target
+### Test Data
 
-* yield_kg
+* Samples: **73**
 
-### Data Split
+Input files used:
 
-The project uses the preprocessed datasets generated during Day 8:
+* `data/processed/X_train.npy`
+* `data/processed/y_train.npy`
+* `data/processed/X_test.npy`
+* `data/processed/y_test.npy`
 
-```text
-data/processed/train.csv
-data/processed/test.csv
-```
-
-This ensures a consistent and leak-free evaluation process across models.
+The Random Forest model was trained exclusively on the training dataset and evaluated on the held-out test dataset.
 
 ---
 
-## Model Pipeline
+## Methodology
 
-A Scikit-Learn Pipeline was used to maintain consistency with previous experiments.
+### Baseline Model
 
-Pipeline Components:
+A Linear Regression model was trained using the training data and evaluated on the test set.
 
-1. StandardScaler
-2. RandomForestRegressor
+Metrics computed:
 
-Model configuration:
+* Mean Absolute Error (MAE)
+* Root Mean Squared Error (RMSE)
+* Coefficient of Determination (R²)
+
+### Random Forest Model
+
+A Random Forest Regressor was trained with the following configuration:
 
 ```python
 RandomForestRegressor(
@@ -708,127 +709,151 @@ RandomForestRegressor(
 )
 ```
 
----
+Parameters:
 
-## Evaluation Metrics
+| Parameter    | Value |
+| ------------ | ----- |
+| n_estimators | 100   |
+| random_state | 42    |
+| n_jobs       | -1    |
 
-The following metrics were calculated on the test set:
+The model was fitted using:
 
-* Mean Absolute Error (MAE)
-* Root Mean Squared Error (RMSE)
-* R² Score
+```python
+rf.fit(X_train, y_train)
+```
 
-These metrics were compared against the Linear Regression baseline.
+Predictions were generated on the held-out test set and evaluated using the same metrics as the baseline model.
 
 ---
 
 ## Model Comparison
 
-| Model             | MAE           | RMSE          | R²            |
-| ----------------- | ------------- | ------------- | ------------- |
-| Linear Regression | (your result) | (your result) | (your result) |
-| Random Forest     | (your result) | (your result) | (your result) |
+Performance of the Random Forest model was compared directly against the Linear Regression baseline.
 
-Interpretation:
+Metrics included:
 
-* Lower MAE indicates smaller prediction errors.
-* Lower RMSE indicates better overall predictive performance.
-* Higher R² indicates more variance explained by the model.
+* MAE
+* RMSE
+* R²
+
+Comparison results were exported for future reference.
+
+Saved file:
+
+```text
+reports/model_comparison.csv
+```
 
 ---
 
 ## Feature Importance Analysis
 
-Feature importance scores were extracted from the trained Random Forest model.
+Random Forest feature importances were extracted using:
 
-Features analyzed:
+```python
+rf.feature_importances_
+```
 
-* temperature_c
-* humidity_pct
-* co2_ppm
+The following environmental variables were evaluated:
 
-A feature importance visualization was generated and saved as:
+* Temperature (`temperature_c`)
+* Humidity (`humidity_pct`)
+* CO₂ (`co2_ppm`)
+
+Feature importance values indicate the relative contribution of each predictor to the model's predictions.
+
+---
+
+## Visualization
+
+A horizontal bar chart was created to visualize feature importance rankings.
+
+Saved figure:
 
 ```text
-plots/rf_feature_importance.png
+reports/figures/rf_feature_importance.png
 ```
+
+The chart allows quick identification of the most influential environmental factor affecting mushroom yield predictions.
 
 ---
 
 ## Model Artifact
 
-The trained model was serialized using Joblib and saved to:
+The trained Random Forest model was serialized using Joblib.
+
+Saved model:
 
 ```text
 models/random_forest.joblib
 ```
 
-This allows the model to be loaded later for inference without retraining.
+This artifact can be loaded later for inference, validation, or deployment.
 
 ---
 
-## Results and Discussion
+## Interpretation
 
-Random Forest was chosen because mushroom yield is influenced by nonlinear interactions between environmental variables.
+The feature with the highest importance score was identified as the strongest contributor to yield prediction.
 
-Unlike Linear Regression, Random Forest can model:
-
-* nonlinear relationships
-* variable interactions
-* threshold effects
-
-Examples include situations where increased humidity improves yield only within specific temperature ranges.
-
-### Complexity Tradeoff
-
-Advantages:
-
-* Captures nonlinear patterns
-* Handles feature interactions automatically
-* Generally produces stronger predictive performance
-
-Disadvantages:
-
-* Less interpretable than Linear Regression
-* Higher computational cost
-* Larger model size
-
-If Random Forest significantly improves R² and reduces error metrics, the additional complexity is justified. Otherwise, the simpler Linear Regression model may remain preferable.
+Feature importance analysis provides insight into which environmental conditions have the greatest influence on the model's decisions.
 
 ---
 
-## Deliverables
+## Complexity Assessment
 
-Completed:
+Random Forest performance was compared against Linear Regression to determine whether the additional model complexity was justified.
 
-* Random Forest trained on train set only
-* Evaluated on held-out test set
-* Compared against Linear Regression baseline
-* Feature importance calculated
-* Feature importance plot generated
-* Model saved using Joblib
-* Results documented
+Decision rule:
 
-Generated Files:
+* Higher R² and lower prediction error → Random Forest likely justified.
+* Similar performance → Linear Regression may remain preferable due to simplicity and interpretability.
+
+This comparison helps balance predictive performance against model complexity.
+
+---
+
+## Saved Artifacts
+
+### Model
 
 ```text
 models/random_forest.joblib
-plots/rf_feature_importance.png
+```
+
+### Comparison Table
+
+```text
+reports/model_comparison.csv
+```
+
+### Feature Importance Plot
+
+```text
+reports/figures/rf_feature_importance.png
 ```
 
 ---
-==============================
-INTERPRETATION
-==============================
-Best Model: Linear Regression
 
-Random Forest showed little or no improvement over Linear Regression.
-In this case, Linear Regression may be preferred because it is simpler and more interpretable.
+## Deliverables Completed
 
+* Random Forest trained using training data only.
+* Test set evaluation completed.
+* Performance compared against Linear Regression baseline.
+* Feature importance values computed.
+* Feature importance visualization generated.
+* Trained model saved for reuse.
+* Model comparison table exported.
+* Complexity justification documented.
+
+---
 
 ## Conclusion
 
-The Random Forest Regressor provides a stronger nonlinear modeling approach for mushroom yield prediction. By comparing its performance against Linear Regression, we can determine whether the increased model complexity produces meaningful improvements in predictive accuracy.
+A Random Forest Regression model was successfully trained and evaluated on the mushroom yield dataset. The model's predictive performance was compared with a Linear Regression baseline using MAE, RMSE, and R² metrics. Feature importance analysis provided insight into the influence of temperature, humidity, and CO₂ on yield prediction. The trained model, evaluation outputs, and visualization artifacts were saved to ensure reproducibility and future model analysis.
+
+
 
 # Day 12 Time Series Cross-Validation
 
@@ -925,6 +950,140 @@ Training and test datasets:
 * Hold-out test performance was compared against cross-validation results.
 * Overfitting risk was assessed by comparing training and test errors.
 * Results provide a more reliable estimate of future model performance than a single train/test split.
+
+# Hyperparameter Tuning with GridSearchCV
+
+## Objective
+
+To improve Random Forest model performance by tuning key hyperparameters using time-aware cross-validation while preventing data leakage from future observations.
+
+## Methodology
+
+### Data Used
+
+The following preprocessed datasets were loaded:
+
+* `data/processed/X_train.npy`
+* `data/processed/X_test.npy`
+* `data/processed/y_train.npy`
+* `data/processed/y_test.npy`
+
+Only the training data was used during hyperparameter tuning.
+
+### Cross-Validation Strategy
+
+A `TimeSeriesSplit` cross-validator with 3 splits was used to preserve chronological ordering of observations.
+
+This approach ensures that:
+
+* Earlier observations are used to predict later observations.
+* Future information is never used during training.
+* Data leakage is prevented.
+
+###  DAY 13 Hyperparameter Grid
+
+A small parameter grid was selected to keep runtime reasonable while exploring meaningful model configurations.
+
+| Parameter          | Values Tested | Purpose                                                                                                  |
+| ------------------ | ------------- | -------------------------------------------------------------------------------------------------------- |
+| `n_estimators`     | 50, 100, 200  | Controls the number of trees in the forest. More trees generally improve stability but increase runtime. |
+| `max_depth`        | None, 8, 16   | Limits tree depth and helps control model complexity.                                                    |
+| `min_samples_leaf` | 1, 3, 5       | Controls minimum observations per leaf node and helps reduce overfitting.                                |
+
+Total parameter combinations evaluated:
+
+```text
+3 × 3 × 3 = 27 combinations
+```
+
+### Grid Search Configuration
+
+The search was performed using:
+
+* `GridSearchCV`
+* `TimeSeriesSplit(n_splits=3)`
+* Scoring metric: Mean Absolute Error (MAE)
+* `refit=True`
+* `n_jobs=-1`
+
+The model was automatically refit using the best parameter combination found during cross-validation.
+
+## Evaluation Procedure
+
+1. Perform Grid Search using training data only.
+2. Select the best parameter combination based on cross-validated MAE.
+3. Refit the best estimator on the full training dataset.
+4. Evaluate the tuned model once on the held-out test dataset.
+5. Record final test metrics.
+
+The test set was not used during tuning.
+
+## Results
+
+The Grid Search produced:
+
+* Best parameter combination
+* Best cross-validation MAE
+* Final test MAE
+* Final test RMSE
+* Final test R² score
+
+Runtime was also recorded to ensure the search remained practical for a standard laptop environment.
+
+## Saved Artifacts
+
+### Tuned Model
+
+Best Random Forest model:
+
+```text
+models/random_forest_tuned.joblib
+```
+
+### Best Parameters
+
+Optimal hyperparameters:
+
+```text
+models/rf_best_params.json
+```
+
+### Search Transparency
+
+First rows of GridSearchCV results:
+
+```text
+reports/gridsearch_cv_results_head.csv
+```
+
+### Performance Summary
+
+Summary of tuning results and evaluation metrics:
+
+```text
+reports/gridsearch_summary.csv
+```
+
+## Validation Checks
+
+The following validation criteria were satisfied:
+
+* TimeSeriesSplit used instead of random K-Fold.
+* Hyperparameter search performed exclusively on training data.
+* Mean Absolute Error used as the optimization metric.
+* Best estimator automatically refit after tuning.
+* Test set evaluated only once after model selection.
+* Best parameters saved for reproducibility.
+* Model artifact saved for deployment and future evaluation.
+* Search results exported for mentor review and transparency.
+
+## Key Findings
+
+* Time-aware cross-validation provided a realistic estimate of future performance.
+* Hyperparameter tuning explored multiple Random Forest configurations efficiently.
+* The selected model represents the best-performing configuration within the defined search space.
+* Exported artifacts allow full reproducibility of tuning results and model evaluation.
+* Search runtime remained practical for an internship-scale machine learning project.
 
 
 
