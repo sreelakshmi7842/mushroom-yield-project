@@ -1,300 +1,232 @@
-import pandas as pd
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-import os
 
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-
-from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
-
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error
 
-# =====================================
+# ==================================================
 # Load Data
-# =====================================
+# ==================================================
 
-train_df = pd.read_csv("data/processed/train.csv")
-test_df = pd.read_csv("data/processed/test.csv")
+X_train = np.load("data/processed/X_train.npy")
+X_test = np.load("data/processed/X_test.npy")
 
-FEATURES = [
-    "temperature_c",
-    "humidity_pct",
-    "co2_ppm"
-]
+y_train = np.load("data/processed/y_train.npy")
+y_test = np.load("data/processed/y_test.npy")
 
-TARGET = "yield_kg"
+# ==================================================
+# Models
+# ==================================================
 
-X_train = train_df[FEATURES]
-y_train = train_df[TARGET]
-
-X_test = test_df[FEATURES]
-y_test = test_df[TARGET]
-
-print("Train Shape:", train_df.shape)
-print("Test Shape :", test_df.shape)
-
-# =====================================
-# TimeSeriesSplit
-# =====================================
-
-tscv = TimeSeriesSplit(n_splits=3)
-
-# =====================================
-# Linear Regression Pipeline
-# =====================================
-
-linear_pipeline = Pipeline([
-    ("scaler", StandardScaler()),
-    ("model", LinearRegression())
-])
-
-# =====================================
-# Random Forest Pipeline
-# =====================================
-
-rf_pipeline = Pipeline([
-    ("scaler", StandardScaler()),
-    ("model", RandomForestRegressor(
-        n_estimators=100,
-        random_state=42,
-        n_jobs=-1
-    ))
-])
-
-# =====================================
-# Cross Validation MAE
-# =====================================
-
-linear_cv_scores = -cross_val_score(
-    linear_pipeline,
-    X_train,
-    y_train,
-    cv=tscv,
-    scoring="neg_mean_absolute_error"
+rf = RandomForestRegressor(
+    n_estimators=100,
+    random_state=42,
+    n_jobs=-1
 )
+
+lin = LinearRegression()
+
+# ==================================================
+# TimeSeries Cross Validation
+# ==================================================
+
+tscv = TimeSeriesSplit(n_splits=5)
 
 rf_cv_scores = -cross_val_score(
-    rf_pipeline,
+    rf,
     X_train,
     y_train,
     cv=tscv,
     scoring="neg_mean_absolute_error"
 )
 
-print("\n==============================")
-print("CROSS VALIDATION RESULTS")
-print("==============================")
-
-print("\nLinear Regression CV MAE:")
-print(linear_cv_scores)
-
-print("\nRandom Forest CV MAE:")
-print(rf_cv_scores)
-
-print("\nAverage Linear CV MAE:",
-      round(linear_cv_scores.mean(), 3))
-
-print("Average RF CV MAE:",
-      round(rf_cv_scores.mean(), 3))
-
-# =====================================
-# Train Models on Full Train Set
-# =====================================
-
-linear_pipeline.fit(X_train, y_train)
-rf_pipeline.fit(X_train, y_train)
-
-# =====================================
-# Train MAE
-# =====================================
-
-linear_train_preds = linear_pipeline.predict(X_train)
-rf_train_preds = rf_pipeline.predict(X_train)
-
-linear_train_mae = mean_absolute_error(
+lin_cv_scores = -cross_val_score(
+    lin,
+    X_train,
     y_train,
-    linear_train_preds
+    cv=tscv,
+    scoring="neg_mean_absolute_error"
 )
 
-rf_train_mae = mean_absolute_error(
-    y_train,
-    rf_train_preds
+print("\n===== CROSS VALIDATION RESULTS =====")
+
+print(
+    f"RF CV MAE: {rf_cv_scores.mean():.3f} "
+    f"+/- {rf_cv_scores.std():.3f}"
 )
 
-# =====================================
-# Test MAE
-# =====================================
-
-linear_test_preds = linear_pipeline.predict(X_test)
-rf_test_preds = rf_pipeline.predict(X_test)
-
-linear_test_mae = mean_absolute_error(
-    y_test,
-    linear_test_preds
+print(
+    f"Linear CV MAE: {lin_cv_scores.mean():.3f} "
+    f"+/- {lin_cv_scores.std():.3f}"
 )
 
-rf_test_mae = mean_absolute_error(
-    y_test,
-    rf_test_preds
-)
+# ==================================================
+# Hold-Out Test Evaluation
+# ==================================================
 
-# =====================================
-# Overfitting Analysis
-# =====================================
+rf.fit(X_train, y_train)
+lin.fit(X_train, y_train)
 
-print("\n==============================")
-print("OVERFITTING ANALYSIS")
-print("==============================")
+rf_train_pred = rf.predict(X_train)
+rf_test_pred = rf.predict(X_test)
 
-print("\nLinear Regression")
-print("Train MAE:", round(linear_train_mae, 3))
-print("Test MAE :", round(linear_test_mae, 3))
+lin_train_pred = lin.predict(X_train)
+lin_test_pred = lin.predict(X_test)
 
-print("\nRandom Forest")
-print("Train MAE:", round(rf_train_mae, 3))
-print("Test MAE :", round(rf_test_mae, 3))
+rf_train_mae = mean_absolute_error(y_train, rf_train_pred)
+rf_test_mae = mean_absolute_error(y_test, rf_test_pred)
 
-if rf_train_mae < (rf_test_mae * 0.5):
-    rf_comment = (
-        "Potential overfitting detected. "
-        "Train MAE is much lower than Test MAE."
-    )
-else:
-    rf_comment = (
-        "No major overfitting detected."
-    )
+lin_train_mae = mean_absolute_error(y_train, lin_train_pred)
+lin_test_mae = mean_absolute_error(y_test, lin_test_pred)
 
-print("\nRF Interpretation:")
-print(rf_comment)
+# ==================================================
+# Comparison Table
+# ==================================================
 
-# =====================================
-# CV Results Table
-# =====================================
-
-cv_results = pd.DataFrame({
-    "Model": [
-        "Linear Regression",
-        "Random Forest"
-    ],
-    "Mean CV MAE": [
-        round(linear_cv_scores.mean(), 3),
-        round(rf_cv_scores.mean(), 3)
+results = pd.DataFrame({
+    "Model": ["Linear Regression", "Random Forest"],
+    "CV Mean MAE": [
+        lin_cv_scores.mean(),
+        rf_cv_scores.mean()
     ],
     "CV Std": [
-        round(linear_cv_scores.std(), 3),
-        round(rf_cv_scores.std(), 3)
+        lin_cv_scores.std(),
+        rf_cv_scores.std()
+    ],
+    "Train MAE": [
+        lin_train_mae,
+        rf_train_mae
     ],
     "Test MAE": [
-        round(linear_test_mae, 3),
-        round(rf_test_mae, 3)
+        lin_test_mae,
+        rf_test_mae
     ]
 })
 
-print("\n==============================")
-print("CV RESULTS TABLE")
-print("==============================")
-print(cv_results)
+print("\n===== MODEL COMPARISON =====")
+print(results.round(3))
 
-# =====================================
-# Save Chart
-# =====================================
+# ==================================================
+# Overfitting Analysis
+# ==================================================
 
-os.makedirs("reports/figures", exist_ok=True)
+print("\n===== OVERFITTING ANALYSIS =====")
 
-chart_path = "reports/figures/cv_mae_comparison.png"
+for model_name, train_mae, test_mae in [
+    ("Linear Regression", lin_train_mae, lin_test_mae),
+    ("Random Forest", rf_train_mae, rf_test_mae),
+]:
+    print(f"\n{model_name}")
+    print(f"Train MAE: {train_mae:.3f}")
+    print(f"Test MAE : {test_mae:.3f}")
 
-plt.figure(figsize=(8, 5))
+    if train_mae < (0.5 * test_mae):
+        print("Potential overfitting detected.")
+    else:
+        print("No strong evidence of overfitting.")
 
-plt.bar(
-    cv_results["Model"],
-    cv_results["Mean CV MAE"]
+# ==================================================
+# CV Score Plot
+# ==================================================
+
+Path("reports/figures").mkdir(
+    parents=True,
+    exist_ok=True
 )
 
-plt.ylabel("Mean CV MAE")
-plt.title("Cross Validation MAE Comparison")
+plt.figure(figsize=(8, 4))
+
+folds = np.arange(1, len(rf_cv_scores) + 1)
+
+plt.plot(
+    folds,
+    rf_cv_scores,
+    marker="o",
+    label="Random Forest"
+)
+
+plt.plot(
+    folds,
+    lin_cv_scores,
+    marker="o",
+    label="Linear Regression"
+)
+
+plt.xlabel("Fold")
+plt.ylabel("MAE")
+plt.title("TimeSeriesSplit Cross-Validation MAE")
+plt.legend()
 
 plt.tight_layout()
 
 plt.savefig(
-    chart_path,
-    dpi=300,
-    bbox_inches="tight"
+    "reports/figures/cv_mae_scores.png",
+    dpi=150
 )
 
 plt.close()
 
-print("\nChart saved:")
-print(chart_path)
+print(
+    "\nCV plot saved to "
+    "reports/figures/cv_mae_scores.png"
+)
 
-# =====================================
-# Save Report
-# =====================================
+# ==================================================
+# Save Markdown Report
+# ==================================================
 
-os.makedirs("reports", exist_ok=True)
-
-report_path = "reports/cv_results.md"
+Path("reports").mkdir(
+    parents=True,
+    exist_ok=True
+)
 
 with open(
-    report_path,
+    "reports/cv_results.md",
     "w",
     encoding="utf-8"
 ) as f:
 
-    f.write("# Day 12 - Cross Validation Results\n\n")
+    f.write("# Cross Validation Results\n\n")
 
-    f.write("## TimeSeriesSplit\n\n")
-    f.write("n_splits = 3\n\n")
+    f.write("## TimeSeriesSplit Configuration\n")
+    f.write("- n_splits = 5\n")
+    f.write("- No test data used during CV\n\n")
 
-    f.write("## Linear Regression CV Scores\n\n")
-    f.write(f"{linear_cv_scores}\n\n")
+    f.write("## Model Performance\n\n")
 
-    f.write("Average CV MAE: ")
-    f.write(f"{linear_cv_scores.mean():.3f}\n\n")
-
-    f.write("## Random Forest CV Scores\n\n")
-    f.write(f"{rf_cv_scores}\n\n")
-
-    f.write("Average CV MAE: ")
-    f.write(f"{rf_cv_scores.mean():.3f}\n\n")
-
-    f.write("## CV Results Summary\n\n")
-    f.write(cv_results.to_markdown(index=False))
+    f.write(results.round(3).to_markdown(index=False))
     f.write("\n\n")
 
-    f.write("## Overfitting Analysis\n\n")
+    f.write("## Interpretation\n\n")
 
     f.write(
-        f"Linear Regression Train MAE: "
-        f"{linear_train_mae:.3f}\n\n"
+        f"- Random Forest CV MAE: "
+        f"{rf_cv_scores.mean():.3f} ± "
+        f"{rf_cv_scores.std():.3f}\n"
     )
 
     f.write(
-        f"Linear Regression Test MAE: "
-        f"{linear_test_mae:.3f}\n\n"
+        f"- Linear Regression CV MAE: "
+        f"{lin_cv_scores.mean():.3f} ± "
+        f"{lin_cv_scores.std():.3f}\n"
     )
 
     f.write(
-        f"Random Forest Train MAE: "
-        f"{rf_train_mae:.3f}\n\n"
+        "\nHigher standard deviation across folds "
+        "indicates greater variability and less stable "
+        "performance.\n"
     )
 
     f.write(
-        f"Random Forest Test MAE: "
-        f"{rf_test_mae:.3f}\n\n"
+        "\nOverfitting was assessed by comparing "
+        "training MAE and test MAE.\n"
     )
 
-    f.write("### Interpretation\n\n")
-    f.write(f"{rf_comment}\n\n")
-
-    f.write("## CV MAE Comparison Chart\n\n")
-    f.write(
-        "![CV MAE Comparison]"
-        "(figures/cv_mae_comparison.png)\n"
-    )
-
-print("\nReport saved:")
-print(report_path)
-
+print(
+    "\nReport saved to reports/cv_results.md"
+)
