@@ -830,6 +830,102 @@ In this case, Linear Regression may be preferred because it is simpler and more 
 
 The Random Forest Regressor provides a stronger nonlinear modeling approach for mushroom yield prediction. By comparing its performance against Linear Regression, we can determine whether the increased model complexity produces meaningful improvements in predictive accuracy.
 
+# Day 12 Time Series Cross-Validation
+
+## Objective
+
+To evaluate model stability and generalization performance using time-aware cross-validation while preventing data leakage from future observations.
+
+## Methodology
+
+1. Loaded the preprocessed training and test datasets:
+
+   * `data/processed/X_train.npy`
+   * `data/processed/X_test.npy`
+   * `data/processed/y_train.npy`
+   * `data/processed/y_test.npy`
+
+2. Configured `TimeSeriesSplit` with 5 folds:
+
+   * Training data was split chronologically.
+   * Earlier observations were used to predict later observations.
+   * No test data was used during cross-validation.
+
+3. Evaluated two models:
+
+   * Linear Regression
+   * Random Forest Regressor (`n_estimators=100`)
+
+4. Computed cross-validated Mean Absolute Error (MAE) for each fold.
+
+5. Calculated:
+
+   * Mean CV MAE
+   * Standard deviation of CV MAE
+   * Training MAE
+   * Hold-out Test MAE
+
+6. Compared cross-validation performance with final test-set performance.
+
+7. Assessed overfitting by comparing training MAE and test MAE.
+
+## Results
+
+Cross-validation results were summarized for both models using:
+
+* Mean CV MAE
+* CV MAE Standard Deviation
+* Training MAE
+* Test MAE
+
+Lower MAE values indicate better predictive performance.
+
+The standard deviation across folds was used to assess model stability. Higher variance suggests model performance changes significantly across different time periods.
+
+## Overfitting Analysis
+
+Overfitting was evaluated by comparing training and test errors.
+
+Guideline:
+
+* Train MAE much lower than Test MAE → Potential overfitting
+* Similar Train and Test MAE → Better generalization
+
+Random Forest and Linear Regression were both examined using this criterion.
+
+## Deliverables
+
+### Saved Report
+
+Cross-validation summary:
+
+`reports/cv_results.md`
+
+### Saved Visualization
+
+Cross-validation MAE plot:
+
+`reports/figures/cv_mae_scores.png`
+
+### Input Files
+
+Training and test datasets:
+
+* `data/processed/X_train.npy`
+* `data/processed/X_test.npy`
+* `data/processed/y_train.npy`
+* `data/processed/y_test.npy`
+
+## Key Findings
+
+* TimeSeriesSplit was used instead of random K-Fold to preserve chronological order.
+* Cross-validation was performed exclusively on training data.
+* Model performance was evaluated across multiple folds to estimate robustness.
+* Variability across folds was analyzed using MAE standard deviation.
+* Hold-out test performance was compared against cross-validation results.
+* Overfitting risk was assessed by comparing training and test errors.
+* Results provide a more reliable estimate of future model performance than a single train/test split.
+
 
 
 

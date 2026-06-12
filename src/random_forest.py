@@ -56,11 +56,7 @@ linear_pipeline.fit(X_train, y_train)
 linear_preds = linear_pipeline.predict(X_test)
 
 linear_mae = mean_absolute_error(y_test, linear_preds)
-
-linear_rmse = np.sqrt(
-    mean_squared_error(y_test, linear_preds)
-)
-
+linear_rmse = np.sqrt(mean_squared_error(y_test, linear_preds))
 linear_r2 = r2_score(y_test, linear_preds)
 
 # =====================================
@@ -81,15 +77,11 @@ rf_pipeline.fit(X_train, y_train)
 rf_preds = rf_pipeline.predict(X_test)
 
 rf_mae = mean_absolute_error(y_test, rf_preds)
-
-rf_rmse = np.sqrt(
-    mean_squared_error(y_test, rf_preds)
-)
-
+rf_rmse = np.sqrt(mean_squared_error(y_test, rf_preds))
 rf_r2 = r2_score(y_test, rf_preds)
 
 # =====================================
-# Comparison Table
+# Model Comparison
 # =====================================
 
 comparison = pd.DataFrame({
@@ -141,7 +133,9 @@ print(importance_df)
 # Save Feature Importance Plot
 # =====================================
 
-os.makedirs("plots", exist_ok=True)
+os.makedirs("reports/figures", exist_ok=True)
+
+plot_path = "reports/figures/rf_feature_importance.png"
 
 plt.figure(figsize=(8, 5))
 
@@ -157,37 +151,37 @@ plt.title("Random Forest Feature Importance")
 plt.tight_layout()
 
 plt.savefig(
-    "plots/rf_feature_importance.png",
+    plot_path,
     dpi=300,
     bbox_inches="tight"
 )
 
-plt.show()
+plt.close()
 
 print("\nFeature importance plot saved:")
-print("plots/rf_feature_importance.png")
+print(plot_path)
 
 # =====================================
-# Save Random Forest Model
+# Save Model
 # =====================================
 
 os.makedirs("models", exist_ok=True)
 
+model_path = "models/random_forest.joblib"
+
 joblib.dump(
     rf_pipeline,
-    "models/random_forest.joblib"
+    model_path
 )
 
 print("\nRandom Forest model saved:")
-print("models/random_forest.joblib")
+print(model_path)
 
 # =====================================
 # Verify Saved Model
 # =====================================
 
-loaded_model = joblib.load(
-    "models/random_forest.joblib"
-)
+loaded_model = joblib.load(model_path)
 
 sample_predictions = loaded_model.predict(
     X_test.iloc[:5]
@@ -212,26 +206,60 @@ best_model = comparison.loc[
 print(f"Best Model: {best_model}")
 
 if rf_r2 > linear_r2:
-    print(
-        "\nRandom Forest performed better than "
-        "Linear Regression."
-    )
-    print(
-        "This suggests mushroom yield has "
-        "nonlinear relationships with "
-        "temperature, humidity and CO2."
-    )
-    print(
-        "The added complexity of Random Forest "
-        "is justified by the improved accuracy."
+    interpretation = (
+        "Random Forest performed better than Linear Regression. "
+        "This suggests mushroom yield has nonlinear relationships "
+        "with temperature, humidity and CO2. "
+        "The added complexity of Random Forest is justified by the "
+        "improved predictive performance."
     )
 else:
-    print(
-        "\nRandom Forest showed little or no "
-        "improvement over Linear Regression."
+    interpretation = (
+        "Random Forest showed little or no improvement over "
+        "Linear Regression. In this case, Linear Regression may be "
+        "preferred because it is simpler and more interpretable."
     )
-    print(
-        "In this case, Linear Regression may be "
-        "preferred because it is simpler and "
-        "more interpretable."
+
+print("\n" + interpretation)
+
+# =====================================
+# Save Markdown Report
+# =====================================
+
+os.makedirs("reports", exist_ok=True)
+
+report_path = "reports/random_forest_report.md"
+
+with open(report_path, "w", encoding="utf-8") as report:
+
+    report.write("# Day 11 - Random Forest Regressor\n\n")
+
+    report.write("## Dataset\n\n")
+    report.write("- Features: temperature_c, humidity_pct, co2_ppm\n")
+    report.write("- Target: yield_kg\n\n")
+
+    report.write("## Model Comparison\n\n")
+    report.write(comparison.to_markdown(index=False))
+    report.write("\n\n")
+
+    report.write("## Feature Importance\n\n")
+    report.write(importance_df.to_markdown(index=False))
+    report.write("\n\n")
+
+    report.write("## Feature Importance Plot\n\n")
+    report.write(
+        "![Feature Importance](figures/rf_feature_importance.png)\n\n"
     )
+
+    report.write("## Model Artifact\n\n")
+    report.write(
+        f"Saved model path:\n\n`{model_path}`\n\n"
+    )
+
+    report.write("## Interpretation\n\n")
+    report.write(interpretation)
+    report.write("\n")
+
+print("\nReport saved:")
+print(report_path)
+
