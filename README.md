@@ -1086,5 +1086,35 @@ The following validation criteria were satisfied:
 * Search runtime remained practical for an internship-scale machine learning project.
 
 
+## Random Forest Hyperparameter Tuning
+
+### Objective
+
+Optimize Random Forest performance using GridSearchCV with TimeSeriesSplit.
+
+### Parameter Grid
+
+- n_estimators: [50, 100, 200]
+- max_depth: [None, 8, 16]
+- min_samples_leaf: [1, 3, 5]
+
+### Validation Strategy
+
+- TimeSeriesSplit (3 folds)
+- MAE scoring
+- Refit best estimator
+
+### Outputs
+
+- models/random_forest_tuned.joblib
+- models/rf_best_params.json
+- reports/gridsearch_results.md
+
+### Execution
+
+```bash
+python src/tune_random_forest.py
+```
+
 
 
