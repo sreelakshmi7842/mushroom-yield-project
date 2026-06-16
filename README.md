@@ -1562,7 +1562,57 @@ The dashboard is intended as a decision-support tool.
 
 Predictions should be used alongside operational expertise, environmental monitoring, and grower judgment.
 
+## Validation### --day18
 
+### Run CLI Prediction
+
+```bash
+python src/predict.py --temperature 22 --humidity 88 --co2 900
+```
+
+Example output:
+
+```text
+Predicted Yield: 14.62 kg
+```
+
+### Run Streamlit
+
+```bash
+streamlit run app.py
+```
+
+Enter the same values:
+
+* Temperature = 22°C
+* Humidity = 88%
+* CO₂ = 900 ppm
+
+The Streamlit prediction should exactly match the CLI output.
+
+---
+
+## Run Tests
+
+```bash
+pytest tests/
+```
+
+Expected result:
+
+```text
+3 passed
+```
+
+---
+
+## Test Scenarios
+
+Detailed validation scenarios are documented in:
+
+```text
+reports/test_scenarios.md
+```
 
 
 
