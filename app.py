@@ -1,11 +1,11 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-
-from src.predict import make_prediction
+import json
+from pathlib import Path
 
 # ==================================================
-# PAGE CONFIG
+# Page Config
 # ==================================================
 
 st.set_page_config(
@@ -15,7 +15,32 @@ st.set_page_config(
 )
 
 # ==================================================
-# CACHED PREDICTOR
+# Safe Import
+# ==================================================
+
+try:
+    from src.predict import make_prediction
+
+except FileNotFoundError as e:
+    st.error(
+        f"""
+        Model artifacts could not be loaded.
+
+        {e}
+
+        Please verify:
+
+        - random_forest_tuned.joblib
+        - minmax_scaler_train.joblib
+        - feature_cols.json
+
+        exist inside the models folder.
+        """
+    )
+    st.stop()
+
+# ==================================================
+# Cached Predictor
 # ==================================================
 
 @st.cache_resource
@@ -25,45 +50,55 @@ def load_predictor():
 predictor = load_predictor()
 
 # ==================================================
-# MODEL METADATA
+# Metadata
 # ==================================================
 
-MODEL_VERSION = "v0.1-model"
+metadata_file = Path("models/model_metadata.json")
 
-LAST_TRAINING_DATE = "12 Jun 2026"
+if metadata_file.exists():
 
-TEST_MAE = "Replace with actual MAE"
+    with open(metadata_file, "r", encoding="utf-8") as f:
+        metadata = json.load(f)
+
+else:
+
+    metadata = {
+        "version": "v0.1-model",
+        "last_training_date": "12 Jun 2026",
+        "test_mae": "Unknown",
+        "champion_model": "Random Forest Tuned"
+    }
 
 # ==================================================
-# HEADER
+# Header
 # ==================================================
 
 st.title("🍄 Mushroom Yield Forecast")
 
 st.markdown(
     """
-    Estimate expected mushroom yield using environmental
-    sensor readings collected inside the polyhouse.
+Estimate expected mushroom yield using environmental
+sensor readings from a controlled polyhouse environment.
 
-    Inputs:
-    - Temperature (°C)
-    - Relative Humidity (%)
-    - CO₂ Concentration (ppm)
+### Input Units
 
-    Output:
-    - Estimated Yield (kg)
+- Temperature → °C
+- Humidity → %
+- CO₂ → ppm
 
-    This tool is intended for planning and operational support.
-    """
+### Output
+
+Predicted mushroom yield in kilograms.
+"""
 )
 
 # ==================================================
-# SIDEBAR
+# Sidebar Inputs
 # ==================================================
 
 with st.sidebar:
 
-    st.header("Sensor Inputs")
+    st.header("Sensor Readings")
 
     temperature = st.slider(
         "Temperature (°C)",
@@ -90,35 +125,47 @@ with st.sidebar:
     )
 
 # ==================================================
-# VALIDATION WARNINGS
+# Range Validation
 # ==================================================
 
+warnings = []
+
 if not (15 <= temperature <= 30):
-    st.warning(
-        "Temperature is outside the typical training range."
+    warnings.append(
+        "Temperature is outside the training range."
     )
 
 if not (60 <= humidity <= 95):
-    st.warning(
-        "Humidity is outside the typical training range."
+    warnings.append(
+        "Humidity is outside the training range."
     )
 
 if not (500 <= co2 <= 1500):
-    st.warning(
-        "CO₂ is outside the typical training range."
+    warnings.append(
+        "CO₂ is outside the training range."
     )
 
+for warning in warnings:
+    st.warning(warning)
+
 # ==================================================
-# PREDICTION SECTION
+# Prediction
 # ==================================================
 
-if st.button("Predict Yield", use_container_width=True):
+if st.button(
+    "Predict Yield",
+    use_container_width=True
+):
 
-    prediction = predictor(
-        temperature=temperature,
-        humidity=humidity,
-        co2=co2
-    )
+    with st.spinner(
+        "Generating forecast..."
+    ):
+
+        prediction = predictor(
+            temperature=temperature,
+            humidity=humidity,
+            co2=co2
+        )
 
     col1, col2 = st.columns(2)
 
@@ -126,32 +173,34 @@ if st.button("Predict Yield", use_container_width=True):
 
         st.metric(
             "Estimated Yield",
-            f"{prediction:.2f} kg"
+            f"{prediction:,.2f} kg"
         )
 
     with col2:
 
         st.metric(
             "Humidity",
-            f"{humidity:.1f}%"
+            f"{humidity:,.1f}%"
         )
 
     st.success(
-        "Prediction generated successfully."
+        "Prediction completed successfully."
     )
 
     # ==========================================
-    # SENSITIVITY ANALYSIS
+    # Sensitivity Chart
     # ==========================================
 
-    st.subheader("What-if Analysis")
+    st.subheader(
+        "What-if Analysis: Humidity Sensitivity"
+    )
 
     st.markdown(
         """
-        This chart shows how predicted yield changes
-        as humidity varies while temperature and CO₂
-        remain fixed at the selected values.
-        """
+Shows how predicted yield changes when
+humidity varies while temperature and CO₂
+remain fixed.
+"""
     )
 
     humidity_range = np.linspace(
@@ -181,63 +230,68 @@ if st.button("Predict Yield", use_container_width=True):
     )
 
 # ==================================================
-# MODEL INFORMATION
+# Model Information
 # ==================================================
 
-with st.expander("Model Information"):
+with st.expander(
+    "Model Information"
+):
 
     st.markdown(
         f"""
-### Model Metadata
+### Metadata
 
-- Version: **{MODEL_VERSION}**
-- Last Training Date: **{LAST_TRAINING_DATE}**
-- Test MAE: **{TEST_MAE}**
-- Features:
-  - Temperature (°C)
-  - Humidity (%)
-  - CO₂ (ppm)
+**Model Version:** {metadata["version"]}
+
+**Champion Model:** {metadata["champion_model"]}
+
+**Last Training Date:** {metadata["last_training_date"]}
+
+**Test MAE:** {metadata["test_mae"]}
+
+### Features
+
+- Temperature (°C)
+- Humidity (%)
+- CO₂ (ppm)
 
 ### Notes
 
-The model was trained using historical
-polyhouse sensor observations and yield data.
-
-Predictions should be interpreted as guidance
-rather than guaranteed outcomes.
+Predictions are generated using the
+saved champion model and scaler.
 """
     )
 
 # ==================================================
-# METHODOLOGY
+# Methodology
 # ==================================================
 
-with st.expander("Methodology"):
+with st.expander(
+    "Methodology"
+):
 
     st.markdown(
         """
-1. Sensor readings are scaled using the
-   saved MinMaxScaler.
+1. Raw sensor readings are collected.
+2. Inputs are scaled using the saved scaler.
+3. The trained model predicts yield.
+4. Results are returned in kilograms.
 
-2. The champion machine-learning model
-   predicts expected mushroom yield.
-
-3. Yield estimates are returned in kilograms.
-
-For technical details, see:
+For additional details see:
 
 `reports/model_comparison.md`
 """
     )
 
 # ==================================================
-# FOOTER
+# Footer
 # ==================================================
 
 st.markdown("---")
 
 st.caption(
-    "Forecasts are advisory only and should not "
-    "replace grower judgment or field observations."
+    "This tool provides advisory forecasts only. "
+    "Predictions should support, not replace, "
+    "grower expertise and field observations."
 )
 
