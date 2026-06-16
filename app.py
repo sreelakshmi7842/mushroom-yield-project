@@ -1,114 +1,243 @@
 import streamlit as st
+import numpy as np
+import pandas as pd
 
 from src.predict import make_prediction
 
 # ==================================================
-# Page Config
+# PAGE CONFIG
 # ==================================================
 
 st.set_page_config(
     page_title="Mushroom Yield Forecast",
+    page_icon="🍄",
     layout="centered"
 )
 
 # ==================================================
-# Cache Model Resources
+# CACHED PREDICTOR
 # ==================================================
 
 @st.cache_resource
 def load_predictor():
-    """
-    Load prediction function once.
-    Cached across Streamlit reruns.
-    """
     return make_prediction
 
 predictor = load_predictor()
 
 # ==================================================
-# App Header
+# MODEL METADATA
 # ==================================================
 
-st.title("🍄 Polyhouse Yield Predictor")
+MODEL_VERSION = "v0.1-model"
 
-st.caption(
-    "Agritech environmental forecasting using "
-    "temperature, humidity, and CO₂ sensor readings."
+LAST_TRAINING_DATE = "12 Jun 2026"
+
+TEST_MAE = "Replace with actual MAE"
+
+# ==================================================
+# HEADER
+# ==================================================
+
+st.title("🍄 Mushroom Yield Forecast")
+
+st.markdown(
+    """
+    Estimate expected mushroom yield using environmental
+    sensor readings collected inside the polyhouse.
+
+    Inputs:
+    - Temperature (°C)
+    - Relative Humidity (%)
+    - CO₂ Concentration (ppm)
+
+    Output:
+    - Estimated Yield (kg)
+
+    This tool is intended for planning and operational support.
+    """
 )
 
 # ==================================================
-# Sidebar Inputs
+# SIDEBAR
 # ==================================================
 
 with st.sidebar:
 
-    st.header("Sensor Readings")
+    st.header("Sensor Inputs")
 
-    temp = st.slider(
+    temperature = st.slider(
         "Temperature (°C)",
-        min_value=10.0,
-        max_value=35.0,
-        value=22.0,
-        step=0.1
+        10.0,
+        35.0,
+        22.0,
+        0.1
     )
 
-    humid = st.slider(
+    humidity = st.slider(
         "Humidity (%)",
-        min_value=50.0,
-        max_value=100.0,
-        value=88.0,
-        step=0.5
+        50.0,
+        100.0,
+        88.0,
+        0.5
     )
 
     co2 = st.slider(
         "CO₂ (ppm)",
-        min_value=400,
-        max_value=2000,
-        value=900,
-        step=10
+        400,
+        2000,
+        900,
+        10
     )
 
 # ==================================================
-# Training Range Warnings
+# VALIDATION WARNINGS
 # ==================================================
 
-if not (15 <= temp <= 30):
+if not (15 <= temperature <= 30):
     st.warning(
-        "Temperature is outside the typical "
-        "training data range."
+        "Temperature is outside the typical training range."
     )
 
-if not (60 <= humid <= 95):
+if not (60 <= humidity <= 95):
     st.warning(
-        "Humidity is outside the typical "
-        "training data range."
+        "Humidity is outside the typical training range."
     )
 
 if not (500 <= co2 <= 1500):
     st.warning(
-        "CO₂ is outside the typical "
-        "training data range."
+        "CO₂ is outside the typical training range."
     )
 
 # ==================================================
-# Prediction
+# PREDICTION SECTION
 # ==================================================
 
-if st.button("Predict Yield"):
+if st.button("Predict Yield", use_container_width=True):
 
     prediction = predictor(
-        temperature=temp,
-        humidity=humid,
+        temperature=temperature,
+        humidity=humidity,
         co2=co2
     )
 
-    st.metric(
-        label="Estimated Yield",
-        value=f"{prediction:.2f} kg"
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.metric(
+            "Estimated Yield",
+            f"{prediction:.2f} kg"
+        )
+
+    with col2:
+
+        st.metric(
+            "Humidity",
+            f"{humidity:.1f}%"
+        )
+
+    st.success(
+        "Prediction generated successfully."
     )
 
-    st.info(
-        "This forecast is advisory only and "
-        "should not replace grower judgment."
+    # ==========================================
+    # SENSITIVITY ANALYSIS
+    # ==========================================
+
+    st.subheader("What-if Analysis")
+
+    st.markdown(
+        """
+        This chart shows how predicted yield changes
+        as humidity varies while temperature and CO₂
+        remain fixed at the selected values.
+        """
     )
+
+    humidity_range = np.linspace(
+        60,
+        98,
+        39
+    )
+
+    predictions = [
+        predictor(
+            temperature=temperature,
+            humidity=h,
+            co2=co2
+        )
+        for h in humidity_range
+    ]
+
+    chart_df = pd.DataFrame({
+        "Humidity (%)": humidity_range,
+        "Predicted Yield (kg)": predictions
+    })
+
+    st.line_chart(
+        chart_df,
+        x="Humidity (%)",
+        y="Predicted Yield (kg)"
+    )
+
+# ==================================================
+# MODEL INFORMATION
+# ==================================================
+
+with st.expander("Model Information"):
+
+    st.markdown(
+        f"""
+### Model Metadata
+
+- Version: **{MODEL_VERSION}**
+- Last Training Date: **{LAST_TRAINING_DATE}**
+- Test MAE: **{TEST_MAE}**
+- Features:
+  - Temperature (°C)
+  - Humidity (%)
+  - CO₂ (ppm)
+
+### Notes
+
+The model was trained using historical
+polyhouse sensor observations and yield data.
+
+Predictions should be interpreted as guidance
+rather than guaranteed outcomes.
+"""
+    )
+
+# ==================================================
+# METHODOLOGY
+# ==================================================
+
+with st.expander("Methodology"):
+
+    st.markdown(
+        """
+1. Sensor readings are scaled using the
+   saved MinMaxScaler.
+
+2. The champion machine-learning model
+   predicts expected mushroom yield.
+
+3. Yield estimates are returned in kilograms.
+
+For technical details, see:
+
+`reports/model_comparison.md`
+"""
+    )
+
+# ==================================================
+# FOOTER
+# ==================================================
+
+st.markdown("---")
+
+st.caption(
+    "Forecasts are advisory only and should not "
+    "replace grower judgment or field observations."
+)
 

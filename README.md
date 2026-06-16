@@ -1447,5 +1447,122 @@ This screenshot demonstrates:
 * Working inference pipeline
 
 
+DAY 17
+# Enhanced Streamlit Dashboard
+
+## Overview
+
+The Streamlit application provides an interactive interface for mushroom yield forecasting using environmental sensor readings.
+
+The dashboard is designed for farm managers and operations teams rather than machine learning practitioners.
+
+---
+
+## Features
+
+### Yield Prediction
+
+Users can enter:
+
+* Temperature (°C)
+* Relative Humidity (%)
+* CO₂ Concentration (ppm)
+
+and receive an estimated yield prediction in kilograms.
+
+---
+
+### Input Validation
+
+Warnings are displayed when sensor readings fall outside the ranges observed during model training.
+
+This helps communicate uncertainty and improve trust in predictions.
+
+---
+
+### What-if Analysis
+
+The dashboard includes a sensitivity analysis chart showing:
+
+**Predicted Yield vs Humidity**
+
+while holding temperature and CO₂ constant.
+
+This helps users understand how environmental adjustments may affect expected production.
+
+---
+
+### Model Metadata
+
+An expandable information section displays:
+
+* Model Version
+* Last Training Date
+* Test MAE
+* Input Features
+
+This improves transparency and reproducibility.
+
+---
+
+### Methodology Section
+
+A methodology expander explains:
+
+* Feature scaling
+* Model inference workflow
+* Output interpretation
+
+and links users to the technical project documentation.
+
+---
+
+## Running the Dashboard
+
+Activate the virtual environment:
+
+```bash
+venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Run Streamlit:
+
+```bash
+streamlit run app.py
+```
+
+---
+
+## Screenshot
+
+Save a screenshot after successful execution:
+
+```text
+reports/streamlit_dashboard_v2.png
+```
+
+The screenshot should display:
+
+* Input controls
+* Yield prediction
+* Sensitivity chart
+* Metadata expander
+
+---
+
+## Notes
+
+The dashboard is intended as a decision-support tool.
+
+Predictions should be used alongside operational expertise, environmental monitoring, and grower judgment.
+
+
+
 
 
