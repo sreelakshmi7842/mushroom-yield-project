@@ -1,0 +1,5 @@
+[
+    "temperature_c",
+    "humidity_pct",
+    "co2_ppm"
+]

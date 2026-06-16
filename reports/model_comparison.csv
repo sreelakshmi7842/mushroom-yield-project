@@ -1,3 +1,4 @@
-Model,MAE,RMSE,R²
-Linear Regression,0.41935601998260413,0.5351796572669277,0.4271999078424884
-Random Forest,0.45004246575342677,0.5801984182334102,0.3267800675335574
+Model,CV MAE,Test MAE,RMSE,R²,Training Time (s),Interpretability
+Linear Regression,See training logs,0.419,0.535,0.427,N/A,High
+Random Forest Tuned,See training logs,0.445,0.562,0.369,N/A,Medium-Low
+Random Forest Default,See training logs,0.45,0.58,0.327,N/A,Medium
