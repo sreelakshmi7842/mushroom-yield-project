@@ -1236,3 +1236,142 @@ These files provide a complete summary of model evaluation, champion selection, 
 
 
 
+# ## DAY 15 Inference and Deployment### --day15
+
+## Objective
+
+Deploy the champion machine learning model as a reusable inference module capable of predicting mushroom yield from environmental sensor readings.
+
+---
+
+## Saved Artifacts
+
+The following artifacts are required for inference:
+
+text
+models/
+├── random_forest_tuned.joblib
+├── minmax_scaler_train.joblib
+├── feature_cols.json
+
+
+### Artifact Description
+
+| File                       | Purpose                     |
+| -------------------------- | --------------------------- |
+| random_forest_tuned.joblib | Champion prediction model   |
+| minmax_scaler_train.joblib | Feature scaling transformer |
+| feature_cols.json          | Training feature order      |
+
+---
+
+## Run Inference
+
+### Example Command
+
+From the project root:
+
+bash
+python src/predict.py --temperature 22 --humidity 88 --co2 920
+
+
+### Example Output
+
+text
+Predicted Yield: 16.42 kg
+
+
+Actual output will vary depending on the trained model.
+
+---
+
+## Python API
+
+The module exposes a public prediction function:
+
+python
+from src.predict import predict_yield
+
+prediction = predict_yield(
+    temperature_c=22,
+    humidity_pct=88,
+    co2_ppm=920
+)
+
+print(prediction)
+
+
+### Helper Function
+
+python
+from src.predict import make_prediction
+
+prediction = make_prediction(
+    temperature=22,
+    humidity=88,
+    co2=920
+)
+
+
+---
+
+## Reproducibility Notes
+
+### Random Seeds
+
+The following seed was used throughout model development:
+
+python
+np.random.seed(42)
+random_state=42
+
+
+### Library Versions
+
+Generate exact versions using:
+
+bash
+pip freeze > requirements.txt
+
+
+Typical core libraries:
+
+* numpy
+* pandas
+* scikit-learn
+* matplotlib
+* joblib
+* pyarrow
+
+---
+
+## Dependency Installation
+
+Create a clean virtual environment and install dependencies:
+
+bash
+pip install -r requirements.txt
+
+
+---
+
+## Validation
+
+Inference was validated by:
+
+1. Loading saved artifacts from the models directory.
+2. Running predictions through predict.py.
+3. Comparing results against manual model calls.
+4. Confirming identical predictions for the same inputs.
+
+---
+
+## Deployment Notes
+
+* All paths are relative to the project root.
+* Compatible with Streamlit deployment.
+* Predictions are advisory only.
+* Outputs should support grower decision-making and not replace operational judgment.
+
+
+
