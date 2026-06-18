@@ -1,7 +1,8 @@
 from pathlib import Path
 import json
 import argparse
-
+import csv
+from datetime import datetime, timezone
 import joblib
 import pandas as pd
 
@@ -35,6 +36,51 @@ scaler = joblib.load(SCALER_PATH)
 with open(FEATURES_PATH, "r") as f:
     feature_cols = json.load(f)
 
+
+# ==================================================
+# Logging
+# ==================================================
+
+LOG_DIR = PROJECT_ROOT / "logs"
+LOG_PATH = LOG_DIR / "predictions.csv"
+
+
+def log_prediction(
+    temperature_c: float,
+    humidity_pct: float,
+    co2_ppm: float,
+    predicted_kg: float
+):
+    """
+    Log inference requests.
+    """
+
+    LOG_DIR.mkdir(exist_ok=True)
+
+    write_header = not LOG_PATH.exists()
+
+    with open(LOG_PATH, "a", newline="", encoding="utf-8") as f:
+
+        writer = csv.writer(f)
+
+        if write_header:
+            writer.writerow([
+                "timestamp_utc",
+                "temperature_c",
+                "humidity_pct",
+                "co2_ppm",
+                "predicted_kg"
+            ])
+
+        writer.writerow([
+            datetime.now(timezone.utc).isoformat(),
+            round(temperature_c, 2),
+            round(humidity_pct, 2),
+            round(co2_ppm, 2),
+            round(predicted_kg, 3)
+        ])
+
+
 # ==================================================
 # Prediction Function
 # ==================================================
@@ -44,9 +90,6 @@ def predict_yield(
     humidity_pct: float,
     co2_ppm: float
 ) -> float:
-    """
-    Predict mushroom yield in kg.
-    """
 
     data = pd.DataFrame(
         [[temperature_c, humidity_pct, co2_ppm]],
@@ -55,10 +98,16 @@ def predict_yield(
 
     scaled = scaler.transform(data)
 
-    prediction = model.predict(scaled)[0]
+    prediction = float(model.predict(scaled)[0])
 
-    return float(prediction)
+    log_prediction(
+        temperature_c,
+        humidity_pct,
+        co2_ppm,
+        prediction
+    )
 
+    return prediction
 # ==================================================
 # Helper Function
 # ==================================================

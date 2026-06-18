@@ -1613,6 +1613,209 @@ Detailed validation scenarios are documented in:
 ```text
 reports/test_scenarios.md
 ```
+## Deployment##--day19
 
+### Platform
+
+Streamlit Community Cloud
+
+### Live Application
+
+🔗 **Deployment URL**
+
+https://mushroom-yield-project-kyrfei2nyoqwzempv6c3cz.streamlit.app/
+
+The application is publicly accessible through Streamlit Community Cloud and provides real-time mushroom yield predictions based on environmental sensor inputs.
+
+---
+
+## Deployment Verification
+
+The deployed application was tested using the same sensor inputs used during local testing.
+
+### Sample Test Input
+
+| Feature | Value |
+|----------|--------|
+| Temperature | 22 °C |
+| Humidity | 88 % |
+| CO₂ | 920 ppm |
+
+### Verification Result
+
+The deployed application successfully generated predictions consistent with local execution within normal floating-point tolerance.
+
+Verification confirms:
+
+- Champion model loads correctly
+- Feature scaler loads correctly
+- Feature order is preserved
+- Inference pipeline functions as expected
+- Cloud predictions match local predictions
+
+
+# ##Monitoring Plan### --day20
+
+## Objective
+
+Monitor prediction quality, detect data drift, and identify when retraining is required.
+
+---
+
+## Inference Logging
+
+Each prediction request records:
+
+* UTC Timestamp
+* Temperature (°C)
+* Humidity (%)
+* CO₂ (ppm)
+* Predicted Yield (kg)
+
+Logs are stored in:
+
+```text
+logs/predictions.csv
+```
+
+No personally identifiable information (PII) is collected.
+
+---
+
+## Monitoring Metrics
+
+### Input Distribution
+
+Track:
+
+* Average temperature
+* Average humidity
+* Average CO₂
+
+Alert if values move consistently outside historical training ranges.
+
+### Prediction Monitoring
+
+Monitor:
+
+* Average predicted yield
+* Maximum predicted yield
+* Prediction frequency
+
+Alert if:
+
+* Predicted yield exceeds historical maximum by more than 20%
+* Large increases occur without known operational changes
+
+### Data Quality
+
+Watch for:
+
+* Missing sensor values
+* Invalid sensor readings
+* Sensor outages
+
+---
+
+## Data Drift Scenarios
+
+### Sensor Calibration Drift
+
+Sensor readings gradually become inaccurate.
+
+Example:
+
+* Humidity sensor reports values consistently 5% higher than reality.
+
+### Seasonal Drift
+
+Environmental conditions change significantly from those seen during training.
+
+Example:
+
+* Monsoon season
+* Extreme summer temperatures
+
+### Operational Drift
+
+Changes in cultivation practices alter yield relationships.
+
+Example:
+
+* New substrate formulation
+* Different mushroom variety
+
+---
+
+## Retraining Triggers
+
+Retraining should be considered when:
+
+* New season begins
+* Sensor hardware is replaced
+* Significant operational changes occur
+* Monthly prediction review indicates degraded performance
+
+Recommended retraining frequency:
+
+* Every 3–6 months
+* Or after collecting substantial new production data
+
+---
+
+## Business Monitoring
+
+Track:
+
+* Forecasted yield vs actual yield
+* Harvest planning efficiency
+* Stockout incidents
+* Wasted harvest trips
+
+Prediction quality should be evaluated using operational outcomes, not only model metrics.
+
+## Future Improvements
+
+### 1. Additional Features
+
+Expand model inputs to include:
+
+* Light intensity
+* Soil moisture
+* Ventilation rate
+* Growth stage indicators
+
+This may improve predictive accuracy.
+
+### 2. Automated Retraining
+
+Implement a scheduled retraining pipeline using newly collected production data.
+
+Potential frequency:
+
+* Monthly
+* Quarterly
+
+### 3. Drift Detection Dashboard
+
+Add automated monitoring for:
+
+* Sensor drift
+* Seasonal drift
+* Prediction anomalies
+
+Generate alerts when retraining is recommended.
+
+### 4. Historical Analytics
+
+Provide:
+
+* Trend analysis
+* Weekly yield forecasts
+* Production summaries
+
+### 5. Multi-Polyhouse Support
+
+Extend the application to support multiple cultivation environments with separate forecasting models.
 
 
